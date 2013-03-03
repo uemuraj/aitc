@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE Report>
+<Report xmlns="http://xml.kishou.go.jp/jmaxml1/">
+	<Control>
+		<Title>test:0000000027</Title>
+		<DateTime>2012-11-16T07:35:01+09:00</DateTime>
+		<Status>通常</Status>
+		<PublishingOffice>気象庁</PublishingOffice>
+	</Control>
+	<Head xmlns="http://xml.kishou.go.jp/jmaxml1/informationBasis1/">
+		<Title>テスト</Title>
+		<ReportDateTime>2012-11-16T07:35:01+09:00</ReportDateTime>
+		<Headline>
+			<Text>これはテストです。</Text>
+		</Headline>
+	</Head>
+	<Body />
+</Report>

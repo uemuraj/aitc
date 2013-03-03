@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE project>
+
+<project name="subscriber-test" default="build">
+
+	<property name="artifact" value="${ant.project.name}.war" />
+
+	<!-- ビルドには Apache Ivy が必要です。環境変数 "IVY_HOME" または Apache Ant のプロパティとして "ivy.home" を設定してください。 -->
+	<property environment="environment" />
+	<property name="ivy.home" value="${environment.IVY_HOME}"/>
+
+	<target name="ivy-tasks">
+		<taskdef resource="org/apache/ivy/ant/antlib.xml" uri="antlib:org.apache.ivy.ant">
+			<classpath>
+				<fileset dir="${ivy.home}" includes="**/*.jar" />
+			</classpath>
+		</taskdef>
+	</target>
+
+	<target name="retrieve" depends="ivy-tasks" xmlns:ivy="antlib:org.apache.ivy.ant">
+
+		<delete dir="lib" />
+		<mkdir dir="lib" />
+
+		<property name="ivy.default.ivy.user.dir" value="${user.home}/.ivy2" />
+
+		<ivy:retrieve pattern="lib/[artifact]-[revision](-[classifier]).[ext]" />
+
+		<path id="compile.classpath">
+			<fileset dir="lib" />
+		</path>
+	</target>
+
+	<target name="build" depends="retrieve">
+
+		<delete dir="bin" />
+		<mkdir dir="bin" />
+
+		<javac destdir="bin" encoding="UTF-8" includeantruntime="no" debug="on" classpathref="compile.classpath">
+			<compilerarg value="-Xlint" />
+			<src path="src" />
+		</javac>
+
+		<war destfile="${artifact}" needxmlfile="false">
+			<classes dir="bin" includes="**/*.class" />
+			<classes dir="src" includes="**/*.java,**/*.properties" />
+			<fileset dir="WebContent" includes="**/*.jsp,**/*.html,**/*.css,**/*.png" />
+		</war>
+	</target>
+
+	<target name="test" depends="build,coverage-instrument">
+
+		<delete dir="log" />
+		<mkdir dir="log" />
+
+		<javac destdir="bin" encoding="UTF-8" includeantruntime="no" debug="on" classpathref="compile.classpath">
+			<compilerarg value="-Xlint" />
+			<src path="test" />
+		</javac>
+
+		<copy todir="bin" overwrite="true">
+			<fileset dir="test" excludes="**/*.java" />
+		</copy>
+
+		<junit dir="${basedir}" fork="yes" forkmode="once" printsummary="on" showoutput="on" haltonfailure="no" includeantruntime="yes">
+
+			<formatter type="xml" />
+
+			<classpath>
+				<pathelement path="bin" />
+				<path refid="compile.classpath" />
+			</classpath>
+
+			<batchtest todir="log">
+				<fileset dir="bin">
+					<include name="**/*Test.class" />
+				</fileset>
+			</batchtest>
+		</junit>
+
+		<antcall target="coverage-report" inheritrefs="yes" />
+	</target>
+
+
+	<target name="coverage-instrument" depends="cobertura-tasks" xmlns:cobertura="http://cobertura.sourceforge.net/">
+		<cobertura:cobertura-instrument>
+			<fileset dir="bin">
+				<include name="**/*.class" />
+			</fileset>
+		</cobertura:cobertura-instrument>
+	</target>
+
+	<target name="coverage-report" depends="cobertura-tasks" xmlns:cobertura="http://cobertura.sourceforge.net/">
+		<cobertura:cobertura-report destdir="${basedir}" format="xml">
+			<fileset dir="src">
+				<include name="**/*.java" />
+			</fileset>
+		</cobertura:cobertura-report>
+	</target>
+
+	<target name="cobertura-tasks">
+		<taskdef resource="tasks.properties" uri="http://cobertura.sourceforge.net/">
+			<classpath refid="compile.classpath" />
+		</taskdef>
+	</target>
+</project>

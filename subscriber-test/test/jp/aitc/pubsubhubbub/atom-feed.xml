@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE feed>
+<feed xmlns="http://www.w3.org/2005/Atom" xml:lang="ja">
+	<title>JMAXML publishing feed</title>
+	<subtitle>this feed is published by JMA</subtitle>
+	<updated>2012-11-16T07:35:01+09:00</updated>
+	<id>urn:uuid:62d0d3f2-de1a-3cfd-9d8b-454a2993efed</id>
+	<link href="http://www.jma.go.jp/" rel="related" />
+	<link href="http://xml.kishou.go.jp/feed/test.xml" rel="self" />
+	<rights>Published by Japan Meteorological Agency</rights>
+	<entry>
+		<title>test:0000000001</title>
+		<id>urn:uuid:89d368a9-49a4-3db3-98de-425f6c14f97a</id>
+		<updated>2012-11-16T07:35:01+09:00</updated>
+		<author>
+			<name>テスト</name>
+		</author>
+		<link
+			href="file:./test/jp/aitc/pubsubhubbub/atom-link.xml"
+			type="application/xml" />
+		<content type="text">これはテストです</content>
+	</entry>
+</feed>
