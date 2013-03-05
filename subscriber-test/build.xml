@@ -6,19 +6,14 @@
 
 	<property name="artifact" value="${ant.project.name}.war" />
 
-	<!-- ビルドには Apache Ivy が必要です。環境変数 "IVY_HOME" または Apache Ant のプロパティとして "ivy.home" を設定してください。 -->
-	<property environment="environment" />
-	<property name="ivy.home" value="${environment.IVY_HOME}"/>
+	<!--
+		ビルドには Apache Ivy が必要です。Apache Ant の実行にあたり以下の何れかの設定をしてください。
 
-	<target name="ivy-tasks">
-		<taskdef resource="org/apache/ivy/ant/antlib.xml" uri="antlib:org.apache.ivy.ant">
-			<classpath>
-				<fileset dir="${ivy.home}" includes="**/*.jar" />
-			</classpath>
-		</taskdef>
-	</target>
-
-	<target name="retrieve" depends="ivy-tasks" xmlns:ivy="antlib:org.apache.ivy.ant">
+		A. 環境変数 ANT_ARGS にオプションとして -lib /opt/apache-ivy-2.x.x/ivy-2.x.x.jar の様に指定する
+		B. ディレクトリ ${user.home}/.ant/lib に ivy-2.x.x.jar をコピーしておく
+		C. ディレクトリ $ANT_HOME/lib に ivy-2.x.x.jar をコピーしておく
+	 -->
+	<target name="retrieve" xmlns:ivy="antlib:org.apache.ivy.ant">
 
 		<delete dir="lib" />
 		<mkdir dir="lib" />
