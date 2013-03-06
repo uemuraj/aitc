@@ -14,6 +14,9 @@ import javax.xml.xpath.*;
 import org.w3c.dom.*;
 import org.xml.sax.InputSource;
 
+/**
+ * PubSubHubbub サブスクライバの恐ろしく簡単な実装です。実用には足りませんが、サンプルとしてご活用ください。
+ */
 @WebServlet("/callback")
 public class CallbackServlet extends HttpServlet {
 
