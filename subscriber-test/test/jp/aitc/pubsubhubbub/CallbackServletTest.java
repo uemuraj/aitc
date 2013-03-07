@@ -116,22 +116,35 @@ public class CallbackServletTest {
 
 		InputStream expected = getClass().getResourceAsStream("atom-link.xml");
 		try {
-			verifyContent(expected, new File("output", "atom-link.xml"));
+			verifyContent(expected, getOutputs(new File("output"), "atom-link"));
 		} finally {
 			expected.close();
 		}
 	}
 
-	private void verifyContent(InputStream expected, File file)
+	private File[] getOutputs(File dir, final String prefix) {
+
+		return dir.listFiles(new FilenameFilter() {
+
+			@Override
+			public boolean accept(File dir, String name) {
+				return name.startsWith(prefix);
+			}
+		});
+	}
+
+	private void verifyContent(InputStream expected, File... files)
 			throws IOException {
 
-		InputStream actual = new FileInputStream(file);
-		try {
-			verifyContent(expected, actual);
-		} finally {
-			actual.close();
-		}
+		for (File file : files) {
 
+			InputStream actual = new FileInputStream(file);
+			try {
+				verifyContent(expected, actual);
+			} finally {
+				actual.close();
+			}
+		}
 	}
 
 	private void verifyContent(InputStream expected, InputStream actual)

@@ -3,6 +3,8 @@ package jp.aitc.pubsubhubbub;
 import java.io.*;
 import java.net.URL;
 import java.util.*;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicLong;
 
 import javax.servlet.*;
 import javax.servlet.annotation.WebServlet;
@@ -17,16 +19,48 @@ import org.xml.sax.InputSource;
  * PubSubHubbub サブスクライバの恐ろしく簡単な実装です。実用には足りませんが、サンプルとしてご活用ください。
  */
 @WebServlet("/callback")
-public class CallbackServlet extends HttpServlet {
+public class CallbackServlet extends HttpServlet implements Runnable {
 
 	private static final long serialVersionUID = 1L;
 
 	private File tempdir;
 
+	private AtomicLong counter;
+
+	private transient ExecutorService service;
+
+	private transient ArrayBlockingQueue<File[]> params;
+
 	@Override
 	public void init() throws ServletException {
 		ServletContext context = getServletContext();
 		tempdir = (File) context.getAttribute("javax.servlet.context.tempdir");
+		counter = new AtomicLong();
+		service = Executors.newSingleThreadExecutor();
+		params = new ArrayBlockingQueue<File[]>(10);
+	}
+
+	@Override
+	public void destroy() {
+
+		try {
+			service.shutdown();
+			if (service.awaitTermination(60, TimeUnit.SECONDS)) {
+				return;
+			}
+
+			service.shutdownNow();
+			if (service.awaitTermination(60, TimeUnit.SECONDS)) {
+				return;
+			}
+
+			log("service did not terminate.");
+
+		} catch (InterruptedException ie) {
+
+			service.shutdownNow();
+			Thread.currentThread().interrupt();
+		}
 	}
 
 	@Override
@@ -64,9 +98,8 @@ public class CallbackServlet extends HttpServlet {
 	protected void doPost(HttpServletRequest request,
 			HttpServletResponse response) throws ServletException, IOException {
 
-		// (1) 現在時刻を名前にしたファイルに入力を全部そのまま保存します。保存されるのは Atom Feed データです。
-		final String format = "%1$tY%1$tm%1$td%1$tH%1$tM%1$tS%1$tL-%2$s.xml";
-		File rss = new File(tempdir, String.format(format, new Date(), request.getRemoteAddr()));
+		// (1) ファイルに入力を全部そのまま保存します。保存されるのは Atom Feed データです。
+		File rss = new File(tempdir, getRssFileName());
 		log("rss = " + rss);
 
 		ServletInputStream in = request.getInputStream();
@@ -81,7 +114,8 @@ public class CallbackServlet extends HttpServlet {
 		try {
 			XPathExpression exp = compile("//atom:entry/atom:link/@href");
 			InputSource src = new InputSource(xml);
-			NodeList list = (NodeList) exp.evaluate(src, XPathConstants.NODESET);
+			NodeList list = (NodeList) exp
+					.evaluate(src, XPathConstants.NODESET);
 
 			// (3) リンク先の URL から気象庁防災情報XMLの本体をダウンロードします。複数あるかもしれません。
 			for (int i = 0; i < list.getLength(); i++) {
@@ -90,7 +124,12 @@ public class CallbackServlet extends HttpServlet {
 				URL url = new URL(item.getNodeValue());
 				log("url = " + url);
 
-				downloadToFile(url, tempdir);
+				File file = new File(tempdir, getUrlFileName(url));
+				downloadToFile(url, file);
+
+				// (4) 別スレッドで残りの処理をします。
+				params.add(new File[] { rss, file });
+				service.execute(this);
 			}
 
 		} catch (XPathException e) {
@@ -98,6 +137,24 @@ public class CallbackServlet extends HttpServlet {
 		} finally {
 			xml.close();
 		}
+	}
+
+	private String getRssFileName() {
+
+		// 現在時刻を基にファイル名を作ります
+		final String format = "%1$tY%1$tm%1$td%1$tH%1$tM%1$tS%1$tL-%2$09d.xml";
+
+		return String.format(format, new Date(), counter.incrementAndGet());
+	}
+
+	private String getUrlFileName(URL url) {
+
+		// URL を基にファイル名を作ります
+		final String format = "%1$s-%2$09d.xml";
+
+		File file = new File(url.getFile());
+
+		return String.format(format, file.getName(), counter.incrementAndGet());
 	}
 
 	private void downloadToFile(InputStream in, File file) throws IOException {
@@ -115,13 +172,11 @@ public class CallbackServlet extends HttpServlet {
 		}
 	}
 
-	private void downloadToFile(URL url, File dir) throws IOException {
-		
-		String name = new File(url.getFile()).getName();
+	private void downloadToFile(URL url, File file) throws IOException {
 
 		InputStream in = url.openStream();
 		try {
-			downloadToFile(in, new File(dir, name));
+			downloadToFile(in, file);
 		} finally {
 			in.close();
 		}
@@ -153,5 +208,14 @@ public class CallbackServlet extends HttpServlet {
 		});
 
 		return xpath.compile(expression);
+	}
+
+	@Override
+	public void run() {
+
+		// (5) ここで後からゆっくり処理できます
+		File[] files = params.poll();
+
+		log("rss = " + files[0] + ", entry = " + files[1]);
 	}
 }
