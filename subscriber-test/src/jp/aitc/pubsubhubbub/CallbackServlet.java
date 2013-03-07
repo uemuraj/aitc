@@ -216,6 +216,6 @@ public class CallbackServlet extends HttpServlet implements Runnable {
 		// (5) ここで後からゆっくり処理できます
 		File[] files = params.poll();
 
-		log("rss = " + files[0] + ", entry = " + files[1]);
+		log(Arrays.toString(files));
 	}
 }
