@@ -2,7 +2,6 @@ package jp.aitc.pubsubhubbub;
 
 import java.io.*;
 import java.net.URL;
-import java.text.SimpleDateFormat;
 import java.util.*;
 
 import javax.servlet.*;
@@ -66,8 +65,8 @@ public class CallbackServlet extends HttpServlet {
 			HttpServletResponse response) throws ServletException, IOException {
 
 		// (1) 現在時刻を名前にしたファイルに入力を全部そのまま保存します。保存されるのは Atom Feed データです。
-		SimpleDateFormat df = new SimpleDateFormat("yyyyMMddHHmmssSSS'.xml'");
-		File rss = new File(tempdir, df.format(new Date()));
+		final String format = "%1$tY%1$tm%1$td%1$tH%1$tM%1$tS%1$tL-%2$s.xml";
+		File rss = new File(tempdir, String.format(format, new Date(), request.getRemoteAddr()));
 		log("rss = " + rss);
 
 		ServletInputStream in = request.getInputStream();
