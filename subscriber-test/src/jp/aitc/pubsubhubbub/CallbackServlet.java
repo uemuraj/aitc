@@ -104,10 +104,9 @@ public class CallbackServlet extends HttpServlet {
 
 		FileOutputStream out = new FileOutputStream(file);
 		try {
-			byte[] b = new byte[4096];
-			int len;
-			while ((len = in.read(b)) != -1) {
-				out.write(b, 0, len);
+			int b;
+			while ((b = in.read()) != -1) {
+				out.write(b);
 			}
 
 		} finally {
