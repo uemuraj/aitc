@@ -6,7 +6,7 @@
 		<dependency org="javax.servlet" name="javax.servlet-api" rev="3.0.+" />
 		<dependency org="junit" name="junit" rev="4.+" />
 		<dependency org="httpunit" name="httpunit" rev="1.+" />
-		<dependency org="org.mortbay.jetty" name="jetty" rev="6.1.+"/>
+		<dependency org="org.eclipse.jetty" name="jetty-plus" rev="9.0.0.v20130308" />
 		<dependency org="net.sourceforge.cobertura" name="cobertura" rev="1.9.+" />
 		<exclude org="org.slf4j" module="slf4j-log4j12" />
 	</dependencies>

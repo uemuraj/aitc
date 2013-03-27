@@ -4,9 +4,9 @@ import static org.junit.Assert.assertEquals;
 
 import java.io.*;
 
+import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.webapp.WebAppContext;
 import org.junit.*;
-import org.mortbay.jetty.Server;
-import org.mortbay.jetty.webapp.WebAppContext;
 
 import com.meterware.httpunit.*;
 
@@ -24,7 +24,7 @@ public class CallbackServletTest {
 		webapp.addServlet(CallbackServlet.class, "/callback");
 
 		server = new Server(8888);
-		server.addHandler(webapp);
+		server.setHandler(webapp);
 		server.start();
 	}
 
