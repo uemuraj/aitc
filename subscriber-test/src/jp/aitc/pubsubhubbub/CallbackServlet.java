@@ -19,7 +19,7 @@ import org.xml.sax.InputSource;
  * PubSubHubbub サブスクライバの恐ろしく簡単な実装です。実用には足りませんが、サンプルとしてご活用ください。
  */
 @WebServlet("/callback")
-public class CallbackServlet extends HttpServlet implements Runnable {
+public class CallbackServlet extends HttpServlet {
 
 	private static final long serialVersionUID = 1L;
 
@@ -29,15 +29,12 @@ public class CallbackServlet extends HttpServlet implements Runnable {
 
 	private transient ExecutorService service;
 
-	private transient ArrayBlockingQueue<File[]> params;
-
 	@Override
 	public void init() throws ServletException {
 		ServletContext context = getServletContext();
 		tempdir = (File) context.getAttribute("javax.servlet.context.tempdir");
 		counter = new AtomicLong();
 		service = Executors.newSingleThreadExecutor();
-		params = new ArrayBlockingQueue<File[]>(10);
 	}
 
 	@Override
@@ -128,8 +125,7 @@ public class CallbackServlet extends HttpServlet implements Runnable {
 				downloadToFile(url, file);
 
 				// (4) 別スレッドで残りの処理をします。
-				params.add(new File[] { rss, file });
-				service.execute(this);
+				service.execute(new Command(file));
 			}
 
 		} catch (XPathException e) {
@@ -209,13 +205,19 @@ public class CallbackServlet extends HttpServlet implements Runnable {
 
 		return xpath.compile(expression);
 	}
+	
+	// (5) ここで後からゆっくり処理できます
+	private class Command implements Runnable {
+		
+		private final File file;
 
-	@Override
-	public void run() {
+		public Command(File file) {
+			this.file = file;
+		}
 
-		// (5) ここで後からゆっくり処理できます
-		File[] files = params.poll();
-
-		log(Arrays.toString(files));
+		@Override
+		public void run() {
+			log("file = " + file);
+		}
 	}
 }
