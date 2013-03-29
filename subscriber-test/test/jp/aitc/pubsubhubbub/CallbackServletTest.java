@@ -1,10 +1,12 @@
 package jp.aitc.pubsubhubbub;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 
 import java.io.*;
 
+import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.handler.ContextHandlerCollection;
 import org.eclipse.jetty.webapp.WebAppContext;
 import org.junit.*;
 
@@ -13,18 +15,13 @@ import com.meterware.httpunit.*;
 public class CallbackServletTest {
 
 	private static Server server;
+	
+	private static File tempdir = new File("output");
 
 	@BeforeClass
 	public static void start() throws Exception {
-
-		WebAppContext webapp = new WebAppContext();
-		webapp.setContextPath("/subscriber-test");
-		webapp.setResourceBase(".");
-		webapp.setTempDirectory(new File("output"));
-		webapp.addServlet(CallbackServlet.class, "/callback");
-
 		server = new Server(8888);
-		server.setHandler(webapp);
+		server.setHandler(webapps());
 		server.start();
 	}
 
@@ -32,6 +29,35 @@ public class CallbackServletTest {
 	public static void stop() throws Exception {
 		server.stop();
 		server.join();
+	}
+
+	private static Handler webapps() {
+
+		remove(tempdir);
+
+		WebAppContext webapp = new WebAppContext();
+		webapp.setContextPath("/subscriber-test");
+		webapp.setResourceBase(".");
+		webapp.setTempDirectory(tempdir);
+		webapp.addServlet(CallbackServlet.class, "/callback");
+
+		ContextHandlerCollection contexts = new ContextHandlerCollection();
+		contexts.addHandler(webapp);
+		return contexts;
+	}
+
+	private static void remove(File... files) {
+
+		for (File file : files) {
+
+			if (file.isDirectory()) {
+				remove(file.listFiles());
+			}
+
+			if (file.exists()) {
+				file.delete();
+			}
+		}
 	}
 
 	private final String url = "http://localhost:8888/subscriber-test/callback";
@@ -145,6 +171,8 @@ public class CallbackServletTest {
 				actual.close();
 			}
 		}
+		
+		assertTrue(files.length > 0);
 	}
 
 	private void verifyContent(InputStream expected, InputStream actual)
