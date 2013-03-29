@@ -1,6 +1,7 @@
 package jp.aitc.pubsubhubbub;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -45,6 +46,8 @@ public class CallbackServletTest {
 
 	private static Handler webapps() {
 
+		remove(tempdir);
+
 		WebAppContext webapp = new WebAppContext();
 		webapp.setContextPath("/subscriber-test");
 		webapp.setResourceBase(".");
@@ -54,6 +57,20 @@ public class CallbackServletTest {
 		ContextHandlerCollection contexts = new ContextHandlerCollection();
 		contexts.addHandler(webapp);
 		return contexts;
+	}
+
+	private static void remove(File... files) {
+
+		for (File file : files) {
+
+			if (file.isDirectory()) {
+				remove(file.listFiles());
+			}
+
+			if (file.exists()) {
+				file.delete();
+			}
+		}
 	}
 
 	private final String url = "http://localhost:8888/subscriber-test/callback";
