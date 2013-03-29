@@ -3,6 +3,7 @@
 <ivy-module version="2.0">
 	<info organisation="jp.aitc" module="subscriber-test" />
 	<dependencies>
+		<dependency org="com.amazonaws" name="aws-java-sdk" rev="1.4.+" />
 		<dependency org="javax.servlet" name="javax.servlet-api" rev="3.0.+" />
 		<dependency org="junit" name="junit" rev="4.+" />
 		<dependency org="httpunit" name="httpunit" rev="1.+" />
