@@ -94,9 +94,11 @@ public class CallbackServlet extends HttpServlet {
 	@Override
 	protected void doPost(HttpServletRequest request,
 			HttpServletResponse response) throws ServletException, IOException {
+		
+		long number = counter.incrementAndGet();
 
 		// (1) ファイルに入力を全部そのまま保存します。保存されるのは Atom Feed データです。
-		File rss = new File(tempdir, getRssFileName());
+		File rss = new File(tempdir, getRssFileName(number));
 		log("rss = " + rss);
 
 		ServletInputStream in = request.getInputStream();
@@ -121,7 +123,7 @@ public class CallbackServlet extends HttpServlet {
 				URL url = new URL(item.getNodeValue());
 				log("url = " + url);
 
-				File file = new File(tempdir, getUrlFileName(url));
+				File file = new File(tempdir, getUrlFileName(number, url));
 				downloadToFile(url, file);
 
 				// (4) 別スレッドで残りの処理をします。
@@ -135,22 +137,22 @@ public class CallbackServlet extends HttpServlet {
 		}
 	}
 
-	private String getRssFileName() {
+	private String getRssFileName(long number) {
 
-		// 現在時刻を基にファイル名を作ります
-		final String format = "%1$tY%1$tm%1$td%1$tH%1$tM%1$tS%1$tL-%2$09d.xml";
+		// 通し番号と現在時刻を基にファイル名を作ります
+		final String format = "%1$09d-%2$tY%2$tm%2$td%2$tH%2$tM%2$tS%2$tL.xml";
 
-		return String.format(format, new Date(), counter.incrementAndGet());
+		return String.format(format, number, new Date());
 	}
 
-	private String getUrlFileName(URL url) {
+	private String getUrlFileName(long number, URL url) {
 
-		// URL を基にファイル名を作ります
-		final String format = "%1$s-%2$09d.xml";
+		// 通し番号と URL を基にファイル名を作ります
+		final String format = "%1$09d-%2$s";
 
 		File file = new File(url.getFile());
 
-		return String.format(format, file.getName(), counter.incrementAndGet());
+		return String.format(format, number, file.getName());
 	}
 
 	private void downloadToFile(InputStream in, File file) throws IOException {

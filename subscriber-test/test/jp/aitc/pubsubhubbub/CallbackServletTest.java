@@ -1,30 +1,39 @@
 package jp.aitc.pubsubhubbub;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FilenameFilter;
+import java.io.IOException;
+import java.io.InputStream;
 
+import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.handler.ContextHandlerCollection;
 import org.eclipse.jetty.webapp.WebAppContext;
-import org.junit.*;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
-import com.meterware.httpunit.*;
+import com.meterware.httpunit.GetMethodWebRequest;
+import com.meterware.httpunit.PostMethodWebRequest;
+import com.meterware.httpunit.WebConversation;
+import com.meterware.httpunit.WebRequest;
+import com.meterware.httpunit.WebResponse;
 
 public class CallbackServletTest {
 
 	private static Server server;
 
+	private static File tempdir = new File("output");
+
 	@BeforeClass
 	public static void start() throws Exception {
-
-		WebAppContext webapp = new WebAppContext();
-		webapp.setContextPath("/subscriber-test");
-		webapp.setResourceBase(".");
-		webapp.setTempDirectory(new File("output"));
-		webapp.addServlet(CallbackServlet.class, "/callback");
-
 		server = new Server(8888);
-		server.setHandler(webapp);
+		server.setHandler(webapps());
 		server.start();
 	}
 
@@ -32,6 +41,19 @@ public class CallbackServletTest {
 	public static void stop() throws Exception {
 		server.stop();
 		server.join();
+	}
+
+	private static Handler webapps() {
+
+		WebAppContext webapp = new WebAppContext();
+		webapp.setContextPath("/subscriber-test");
+		webapp.setResourceBase(".");
+		webapp.setTempDirectory(tempdir);
+		webapp.addServlet(CallbackServlet.class, "/callback");
+
+		ContextHandlerCollection contexts = new ContextHandlerCollection();
+		contexts.addHandler(webapp);
+		return contexts;
 	}
 
 	private final String url = "http://localhost:8888/subscriber-test/callback";
@@ -116,19 +138,19 @@ public class CallbackServletTest {
 
 		InputStream expected = getClass().getResourceAsStream("atom-link.xml");
 		try {
-			verifyContent(expected, getOutputs(new File("output"), "atom-link"));
+			verifyContent(expected, getOutputs("atom-link.xml"));
 		} finally {
 			expected.close();
 		}
 	}
 
-	private File[] getOutputs(File dir, final String prefix) {
+	private File[] getOutputs(final String suffix) {
 
-		return dir.listFiles(new FilenameFilter() {
+		return tempdir.listFiles(new FilenameFilter() {
 
 			@Override
 			public boolean accept(File dir, String name) {
-				return name.startsWith(prefix);
+				return name.endsWith(suffix);
 			}
 		});
 	}
@@ -145,6 +167,8 @@ public class CallbackServletTest {
 				actual.close();
 			}
 		}
+
+		assertTrue(files.length > 0);
 	}
 
 	private void verifyContent(InputStream expected, InputStream actual)
