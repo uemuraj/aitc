@@ -140,7 +140,7 @@ public class CallbackServlet extends HttpServlet {
 	private String getRssFileName(long number) {
 
 		// 通し番号と現在時刻を基にファイル名を作ります
-		final String format = "%1$09d-%2$tY%2$tm%2$td%2$tH%2$tM%2$tS%2$tL.xml";
+		final String format = "%2$tY%2$tm%2$td%2$tH%2$tM%2$tS%2$tL-%1$09d.xml";
 
 		return String.format(format, number, new Date());
 	}
