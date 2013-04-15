@@ -61,6 +61,7 @@
 		<junit dir="${basedir}" fork="yes" forkmode="once" printsummary="on" showoutput="on" haltonfailure="no" includeantruntime="yes">
 
 			<formatter type="xml" />
+			<jvmarg value="-XX:-UseSplitVerifier" />
 
 			<classpath>
 				<pathelement path="bin" />
