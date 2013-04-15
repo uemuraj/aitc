@@ -1,19 +1,43 @@
 package jp.aitc.pubsubhubbub;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.PrintWriter;
 import java.net.URL;
-import java.util.*;
-import java.util.concurrent.*;
+import java.util.Collections;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
-import javax.servlet.*;
+import javax.servlet.ServletContext;
+import javax.servlet.ServletException;
+import javax.servlet.ServletInputStream;
 import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.*;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.xml.namespace.NamespaceContext;
-import javax.xml.xpath.*;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathException;
+import javax.xml.xpath.XPathExpression;
+import javax.xml.xpath.XPathFactory;
 
-import org.w3c.dom.*;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
+
+import com.amazonaws.ClientConfiguration;
+import com.amazonaws.auth.AWSCredentials;
+import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
+import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.AmazonS3Client;
 
 /**
  * PubSubHubbub サブスクライバの恐ろしく簡単な実装です。実用には足りませんが、サンプルとしてご活用ください。
@@ -94,7 +118,7 @@ public class CallbackServlet extends HttpServlet {
 	@Override
 	protected void doPost(HttpServletRequest request,
 			HttpServletResponse response) throws ServletException, IOException {
-		
+
 		long number = counter.incrementAndGet();
 
 		// (1) ファイルに入力を全部そのまま保存します。保存されるのは Atom Feed データです。
@@ -207,19 +231,43 @@ public class CallbackServlet extends HttpServlet {
 
 		return xpath.compile(expression);
 	}
-	
+
 	// (5) ここで後からゆっくり処理できます
 	private class Command implements Runnable {
-		
+
 		private final File file;
 
 		public Command(File file) {
 			this.file = file;
+			log("file = " + file);
 		}
 
 		@Override
 		public void run() {
-			log("file = " + file);
+
+			// (6) Amazon Web Services へアクセスするための ID とキーが必要です
+			// 以下のページを参照してください
+			// http://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/auth/DefaultAWSCredentialsProviderChain.html
+			AWSCredentials credentials = new DefaultAWSCredentialsProviderChain()
+					.getCredentials();
+			ClientConfiguration config = new ClientConfiguration();
+
+			String proxyHost = System.getProperty("http.proxyHost");
+			String proxyPort = System.getProperty("http.proxyPort");
+
+			if (proxyHost != null && proxyPort != null) {
+				config.setProxyHost(proxyHost);
+				config.setProxyPort(Integer.parseInt(proxyPort));
+			}
+
+			// (7) Amazon S3 にファイルをそのまま保存します
+			// バケット名は適当なものに変更してください
+			AmazonS3 s3 = new AmazonS3Client(credentials, config);
+			try {
+				s3.putObject("uemuraj-jmaxml-raw", file.getName(), file);
+			} catch (Exception e) {
+				log(file.getName(), e);
+			}
 		}
 	}
 }
