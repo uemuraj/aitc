@@ -78,6 +78,18 @@ public class CallbackServletTest {
 	private final String challenge = "test-test-test";
 
 	private final WebConversation conversation = new WebConversation();
+	
+	@Before
+	public void credentials() {
+		// System.setProperty("aws.accessKeyId", "???");
+		// System.setProperty("aws.secretKey", "???");
+	}
+
+	@Before
+	public void proxy() {
+		// System.setProperty("http.proxyHost", "???");
+		// System.setProperty("http.proxyPort", "???");
+	}
 
 	@Test
 	public void hubVerifySubscribe() throws IOException {

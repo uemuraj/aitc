@@ -38,6 +38,7 @@ import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
+import com.amazonaws.services.s3.model.PutObjectResult;
 
 /**
  * PubSubHubbub サブスクライバの恐ろしく簡単な実装です。実用には足りませんが、サンプルとしてご活用ください。
@@ -235,6 +236,9 @@ public class CallbackServlet extends HttpServlet {
 	// (5) ここで後からゆっくり処理できます
 	private class Command implements Runnable {
 
+		// Amazon S3 バケット名です（適当なものに変更してください）
+		private final String bucketName = "uemuraj-jmaxml-raw";
+
 		private final File file;
 
 		public Command(File file) {
@@ -261,12 +265,13 @@ public class CallbackServlet extends HttpServlet {
 			}
 
 			// (7) Amazon S3 にファイルをそのまま保存します
-			// バケット名は適当なものに変更してください
 			AmazonS3 s3 = new AmazonS3Client(credentials, config);
+			String key = file.getName();
 			try {
-				s3.putObject("uemuraj-jmaxml-raw", file.getName(), file);
+				PutObjectResult result = s3.putObject(bucketName, key, file);
+				log("upload = " + key + ", " + result.getETag());
 			} catch (Exception e) {
-				log(file.getName(), e);
+				log(key, e);
 			}
 		}
 	}
