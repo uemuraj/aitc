@@ -63,6 +63,10 @@
 			<formatter type="xml" />
 			<jvmarg value="-XX:-UseSplitVerifier" />
 
+			<!-- "fork" しているので受け渡す必要あり（？） -->
+			<sysproperty key="aws.accessKeyId" value="${aws.accessKeyId}" />
+			<sysproperty key="aws.secretKey" value="${aws.secretKey}" />
+
 			<classpath>
 				<pathelement path="bin" />
 				<path refid="compile.classpath" />
