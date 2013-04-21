@@ -3,6 +3,9 @@
 <ivy-module version="2.0">
 	<info organisation="jp.aitc" module="subscriber-test" />
 	<dependencies>
+		<dependency org="javax.servlet" name="javax.servlet-api" rev="3.0.+" />
+		<dependency org="jstl" name="jstl" rev="1.1.2"/>
+		<dependency org="taglibs" name="standard" rev="1.1.2"/>
 		<dependency org="com.amazonaws" name="aws-java-sdk" rev="1.4.+" />
 		<dependency org="javax.servlet" name="javax.servlet-api" rev="3.0.+" />
 		<dependency org="junit" name="junit" rev="4.+" />
@@ -10,5 +13,6 @@
 		<dependency org="org.eclipse.jetty" name="jetty-plus" rev="9.0.0.v20130308" />
 		<dependency org="net.sourceforge.cobertura" name="cobertura" rev="1.9.+" />
 		<exclude org="org.slf4j" module="slf4j-log4j12" />
+		<exclude org="org.eclipse.jetty.orbit" />
 	</dependencies>
 </ivy-module>
